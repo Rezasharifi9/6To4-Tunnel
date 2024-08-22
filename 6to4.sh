@@ -185,6 +185,7 @@ add_tunnel() {
     fi
 
     # دادن مجوز اجرایی به فایل /etc/rc.local
+```bash
     chmod +x /etc/rc.local
 
     # چاپ آدرس‌های IPv6 تنظیم‌شده برای کاربر
@@ -200,8 +201,7 @@ edit_tunnel() {
     
     # دریافت نام شبکه با اعتبارسنجی
     while true; do
-        read -p "Enter the name of the tunnel you want to edit: " network```bash
-_name
+        read -p "Enter the name of the tunnel you want to edit: " network_name
         if validate_network_name "$network_name"; then
             break
         fi
