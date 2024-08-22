@@ -180,19 +180,19 @@ add_tunnel() {
     } >> /etc/rc.local
 
     # بررسی وجود exit 0 در /etc/rc.local و افزودن آن در صورت عدم وجود
-    if ! grep -q "exit 0" /etc/rc.local; then
-        echo "exit 0" >> /etc/rc.local
-    fi
+if ! grep -q "exit 0" /etc/rc.local; then
+    echo "exit 0" >> /etc/rc.local
+fi
 
-    # دادن مجوز اجرایی به فایل /etc/rc.local
-```bash
-    chmod +x /etc/rc.local
+# دادن مجوز اجرایی به فایل /etc/rc.local
+chmod +x /etc/rc.local
 
-    # چاپ آدرس‌های IPv6 تنظیم‌شده برای کاربر
-    echo "IPv6 address for Iranian server: $local_ipv6_6to4"
-    echo "IPv6 address for foreign server: $remote_ipv6_gre"
+# چاپ آدرس‌های IPv6 تنظیم‌شده برای کاربر
+echo "IPv6 address for Iranian server: $local_ipv6_6to4"
+echo "IPv6 address for foreign server: $remote_ipv6_gre"
 
-    echo "The tunnels have been configured and saved in /etc/rc.local for persistence after reboot."
+echo "The tunnels have been configured and saved in /etc/rc.local for persistence after reboot."
+
 }
 
 # تابع برای ویرایش تونل موجود
