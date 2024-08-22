@@ -5,7 +5,6 @@ show_menu() {
     echo "============================================"
     echo " Welcome to the Tunnel Configuration Script "
     echo "============================================"
-    echo "============================================"
     echo "Please select an option:"
     echo "1. Add a new tunnel"
     echo "2. Edit an existing tunnel"
@@ -13,10 +12,10 @@ show_menu() {
     echo "4. Exit"
 }
 
-# تابع برای تولید آدرس ثابت ad11::1 و ad11::2
+# تابع برای تولید آدرس ثابت ad11::1 و ad11::2 با فرمت کامل
 generate_fixed_ipv6() {
     suffix=$1
-    echo "ad11::${suffix}/64"
+    echo "ad11:0:0:0:0:0:0:${suffix}/64"
 }
 
 # تابع برای تولید یک آدرس IPv4 رندوم در شبکه 172.18.20.0/24
@@ -32,21 +31,30 @@ add_tunnel() {
     read -p "Enter the network name: " network_name
 
     # دریافت دامنه‌ها از کاربر
-    read -p "Enter the domain for the local server (Iran): " local_domain
-    read -p "Enter the domain for the remote server (Abroad): " remote_domain
+    read -p "Enter the domain for the Iran server: " iran_domain
+    read -p "Enter the domain for the Abroad server: " abroad_domain
 
-    # پرسش از کاربر برای تعیین نوع سرور (ایران یا خارج)
-    read -p "Is this server for Iran? (yes/no): " is_iran
-    if [[ "$is_iran" == "yes" ]]; then
+    # پرسش از کاربر برای تعیین نوع سرور محلی (ایران یا خارج)
+    read -p "Is this server based in Iran or Abroad? (1 for Iran, 2 for Abroad): " server_location
+    if [[ "$server_location" == "1" ]]; then
+        # تنظیم سرور محلی به عنوان ایران
         local_ipv6=$(generate_fixed_ipv6 1)
         remote_ipv6=$(generate_fixed_ipv6 2)
+        local_domain="$iran_domain"
+        remote_domain="$abroad_domain"
         echo "Configuring Local IPv6 as: $local_ipv6 (Iran)"
         echo "Configuring Remote IPv6 as: $remote_ipv6 (Abroad)"
-    else
+    elif [[ "$server_location" == "2" ]]; then
+        # تنظیم سرور محلی به عنوان خارج
         local_ipv6=$(generate_fixed_ipv6 2)
         remote_ipv6=$(generate_fixed_ipv6 1)
+        local_domain="$abroad_domain"
+        remote_domain="$iran_domain"
         echo "Configuring Local IPv6 as: $local_ipv6 (Abroad)"
         echo "Configuring Remote IPv6 as: $remote_ipv6 (Iran)"
+    else
+        echo "Invalid selection. Please enter 1 for Iran or 2 for Abroad."
+        exit 1
     fi
 
     # تولید آدرس‌های IPv4 به صورت رندوم
