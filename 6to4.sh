@@ -124,6 +124,7 @@ generate_local_ipv6() {
     done
 }
 
+
 # تابع تولید Remote IPv6 مرتبط با Local IPv6
 generate_remote_ipv6() {
     local base_prefix=$1
