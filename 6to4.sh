@@ -27,16 +27,16 @@ add_tunnel() {
     read -p "Is this server based in Iran or Abroad? (1 for Iran, 2 for Abroad): " server_location
     if [[ "$server_location" == "1" ]]; then
         # تنظیم سرور محلی به عنوان ایران
-        local_ipv6="ad11::1/64"
-        remote_ipv6="ad11::2/64"
+        local_ipv6="ad11::1"
+        remote_ipv6="ad11::2"
         local_domain="$iran_domain"
         remote_domain="$abroad_domain"
         echo "Configuring Local IPv6 as: $local_ipv6 (Iran)"
         echo "Configuring Remote IPv6 as: $remote_ipv6 (Abroad)"
     elif [[ "$server_location" == "2" ]]; then
         # تنظیم سرور محلی به عنوان خارج
-        local_ipv6="ad11::2/64"
-        remote_ipv6="ad11::1/64"
+        local_ipv6="ad11::2"
+        remote_ipv6="ad11::1"
         local_domain="$abroad_domain"
         remote_domain="$iran_domain"
         echo "Configuring Local IPv6 as: $local_ipv6 (Abroad)"
@@ -80,13 +80,13 @@ add_tunnel() {
 
     # ایجاد تونل 6to4
     ip tunnel add ${network_name}_6To4 mode sit remote $remote_ip local $local_ip
-    ip -6 addr add "$local_ipv6" dev ${network_name}_6To4
+    ip -6 addr add $local_ipv6/64 dev ${network_name}_6To4
     ip link set ${network_name}_6To4 up
     echo "6to4 tunnel setup completed for $network_name."
 
     # ایجاد تونل GRE
     ip -6 tunnel add ${network_name}_GRE mode ip6gre remote $remote_ipv6 local $local_ipv6
-    ip addr add "$local_ipv4"/30 dev ${network_name}_GRE
+    ip addr add $local_ipv4/30 dev ${network_name}_GRE
     ip link set ${network_name}_GRE up
     echo "GRE tunnel setup completed for $network_name."
 
