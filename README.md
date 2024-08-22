@@ -1,18 +1,81 @@
-# Network Tunnel Setup Script
 
-This repository contains a bash script to configure network tunnels (6to4 and GRE6/IPIPv6) on a Linux system. The script is designed to work with dynamic user inputs, validating network names and domains, and handling the creation or replacement of existing tunnels.
+# Tunnel Configuration Script
 
-## Features
+This repository contains two bash scripts to help you configure and manage IPv6 and IPv4 tunnels using SIT (IPv6-in-IPv4) and GRE (Generic Routing Encapsulation) modes. The scripts allow for both manual and automated input for IP addresses, and provide functionality for auto-updating tunnels based on domain name changes.
 
-- Configures a 6to4 tunnel and GRE6/IPIPv6 tunnel.
-- Validates network name and domain inputs.
-- Checks if a network with the given name already exists and replaces it if necessary.
-- Stores tunnel configuration in `/etc/rc.local` for persistence across reboots.
-- Automatically generates IPv4 and IPv6 addresses.
+## Features:
+- Add a new tunnel with automatic or manual IPv6 and IPv4 address generation.
+- Configure tunnels based on domain names for both local (Iran) and remote (Abroad) servers.
+- Auto-update tunnels upon system reboot with updated IP addresses.
+- Auto-generate random IPv4 addresses within a specified range.
+- Save and persist all tunnel configurations for future updates.
 
-## Usage
+## Script Details
 
-To use this script, you can download and execute it directly from GitHub.
+### `add_tunnel.sh`
+This script is used to create a new tunnel configuration or edit an existing one. It prompts the user for various inputs such as domains, IP addresses, and network names.
+
+#### Usage:
+1. **Add a new tunnel:** Choose to add a new tunnel with manual or automatically generated IPv6 addresses.
+2. **Automatic IPv6 generation:** The script will generate random IPv6 addresses if chosen.
+3. **Random IPv4 generation:** The IPv4 addresses will be automatically generated in the range `172.18.20.X`, where `X` is a random number between 1 and 254.
+4. **Save all configurations:** The domain names, IPv6, IPv4 addresses, and network name are saved in the `/etc/tunnel_env` file for later use by the update script.
+
+#### How to Run:
+```bash
+sudo bash add_tunnel.sh
+```
+
+#### Input Prompts:
+- **Domains:** The script will ask for the remote and local domain names.
+- **IPv6 Address:** You can choose to either manually enter the IPv6 addresses or let the script generate them for you.
+- **IPv4 Address:** Automatically generated within the `172.18.20.0/24` subnet.
+
+### `update_tunnel.sh`
+This script is used to update tunnel configurations based on new IP addresses resolved from the stored domain names. It checks for changes in the resolved IP addresses and updates the tunnel settings accordingly. The script is intended to be run automatically after each system reboot to ensure that tunnels are always using the latest IP addresses.
+
+#### How it Works:
+1. **Reads configuration from `/etc/tunnel_env`:** All stored configuration details are read from this file, including domain names, IPv6, IPv4 addresses, and network name.
+2. **Resolves IP addresses from domain names:** The script uses `dig` to resolve the latest IP addresses for the remote and local domains.
+3. **Compares the new IPs:** If the IPs have changed, it updates the tunnel configuration accordingly.
+
+#### How to Set Up for Auto-Execution:
+You can set up this script to run automatically after every system reboot by adding it to `cron`.
+
+#### Setup Cron for Auto-Execution:
+1. Open the cron editor:
+   ```bash
+   sudo crontab -e
+   ```
+
+2. Add the following line to execute the script at reboot:
+   ```
+   @reboot /path/to/update_tunnel.sh
+   ```
+
+#### How to Run Manually:
+```bash
+sudo bash update_tunnel.sh
+```
+
+## Example Workflow
+
+1. **Run `add_tunnel.sh`:**  
+   Configure your tunnel by providing domain names, selecting whether to enter IPv6 addresses manually, and allowing the script to generate random IPv4 addresses. All information will be stored for future use.
+
+2. **Run `update_tunnel.sh`:**  
+   After reboot or whenever necessary, this script will reconfigure the tunnel based on the most recent IP addresses resolved from the stored domain names.
+
+## Files
+
+- `add_tunnel.sh`: Script to create or edit tunnels.
+- `update_tunnel.sh`: Script to update tunnels based on domain name IP changes.
+- `/etc/tunnel_env`: File storing all tunnel configuration data.
+
+## Requirements
+- **Operating System:** Linux-based OS (Ubuntu, Debian, CentOS, etc.)
+- **Tools Required:** `ip`, `dig`, `openssl`
+- **Permissions:** Root or sudo privileges.
 
 ### Download and Execute
 
