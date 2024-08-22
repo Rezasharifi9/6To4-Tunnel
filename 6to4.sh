@@ -79,13 +79,13 @@ add_tunnel() {
     ip link delete ${network_name}_GRE 2>/dev/null
 
     # ایجاد تونل 6to4
-    ip tunnel add ${network_name}_6To4 mode sit remote "$remote_ip" local "$local_ip"
+    ip tunnel add ${network_name}_6To4 mode sit remote $remote_ip local $local_ip
     ip -6 addr add "$local_ipv6" dev ${network_name}_6To4
     ip link set ${network_name}_6To4 up
     echo "6to4 tunnel setup completed for $network_name."
 
     # ایجاد تونل GRE
-    ip -6 tunnel add ${network_name}_GRE mode ip6gre remote "$remote_ipv6" local "$local_ipv6"
+    ip -6 tunnel add ${network_name}_GRE mode ip6gre remote $remote_ipv6 local $local_ipv6
     ip addr add "$local_ipv4"/30 dev ${network_name}_GRE
     ip link set ${network_name}_GRE up
     echo "GRE tunnel setup completed for $network_name."
