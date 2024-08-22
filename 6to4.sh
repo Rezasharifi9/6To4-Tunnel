@@ -5,6 +5,7 @@ show_menu() {
     echo "============================================"
     echo " Welcome to the Tunnel Configuration Script "
     echo "============================================"
+    echo "============================================"
     echo "Please select an option:"
     echo "1. Add a new tunnel"
     echo "2. Edit an existing tunnel"
@@ -12,10 +13,10 @@ show_menu() {
     echo "4. Exit"
 }
 
-# تابع برای تولید یک آدرس IPv6 رندوم با پسوند مشخص
-generate_ipv6() {
+# تابع برای تولید آدرس ثابت ad11::1 و ad11::2
+generate_fixed_ipv6() {
     suffix=$1
-    echo "2001:db8:$(openssl rand -hex 2):$(openssl rand -hex 2)::${suffix}/64"
+    echo "ad11::${suffix}/64"
 }
 
 # تابع برای تولید یک آدرس IPv4 رندوم در شبکه 172.18.20.0/24
@@ -37,25 +38,15 @@ add_tunnel() {
     # پرسش از کاربر برای تعیین نوع سرور (ایران یا خارج)
     read -p "Is this server for Iran? (yes/no): " is_iran
     if [[ "$is_iran" == "yes" ]]; then
-        suffix_local="1"
-        suffix_remote="2"
-        echo "Configuring for Iran as local and Abroad as remote."
+        local_ipv6=$(generate_fixed_ipv6 1)
+        remote_ipv6=$(generate_fixed_ipv6 2)
+        echo "Configuring Local IPv6 as: $local_ipv6 (Iran)"
+        echo "Configuring Remote IPv6 as: $remote_ipv6 (Abroad)"
     else
-        suffix_local="2"
-        suffix_remote="1"
-        echo "Configuring for Abroad as local and Iran as remote."
-    fi
-
-    # پرسش از کاربر برای استفاده از آدرس‌های دستی یا تولید خودکار IPv6
-    read -p "Do you want to generate IPv6 addresses automatically? (yes/no): " generate_ipv6_option
-    if [[ "$generate_ipv6_option" == "yes" ]]; then
-        local_ipv6=$(generate_ipv6 $suffix_local)
-        remote_ipv6=$(generate_ipv6 $suffix_remote)
-        echo "Generated Local IPv6: $local_ipv6"
-        echo "Generated Remote IPv6: $remote_ipv6"
-    else
-        read -p "Enter the local IPv6 address (ending with ::${suffix_local}): " local_ipv6
-        read -p "Enter the remote IPv6 address (ending with ::${suffix_remote}): " remote_ipv6
+        local_ipv6=$(generate_fixed_ipv6 2)
+        remote_ipv6=$(generate_fixed_ipv6 1)
+        echo "Configuring Local IPv6 as: $local_ipv6 (Abroad)"
+        echo "Configuring Remote IPv6 as: $remote_ipv6 (Iran)"
     fi
 
     # تولید آدرس‌های IPv4 به صورت رندوم
