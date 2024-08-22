@@ -87,3 +87,6 @@ chmod +x 6to4.sh
 sudo ./6to4.sh
 
 
+curl -O https://raw.githubusercontent.com/your-username/your-repo/main/update.sh
+chmod +x update.sh
+sudo ./update.sh
