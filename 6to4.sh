@@ -12,17 +12,6 @@ show_menu() {
     echo "4. Exit"
 }
 
-# تابع برای تولید آدرس ثابت ad11::1 و ad11::2 با فرمت کامل
-generate_fixed_ipv6() {
-    suffix=$1
-    echo "ad11:0:0:0:0:0:0:${suffix}/64"
-}
-
-# تابع برای تولید یک آدرس IPv4 رندوم در شبکه 172.18.20.0/24
-generate_ipv4() {
-    echo "172.18.20.$(($RANDOM % 254 + 1))"
-}
-
 # تابع برای افزودن تونل جدید و ذخیره اطلاعات شبکه
 add_tunnel() {
     echo "Adding a new tunnel..."
@@ -38,16 +27,16 @@ add_tunnel() {
     read -p "Is this server based in Iran or Abroad? (1 for Iran, 2 for Abroad): " server_location
     if [[ "$server_location" == "1" ]]; then
         # تنظیم سرور محلی به عنوان ایران
-        local_ipv6=$(generate_fixed_ipv6 1)
-        remote_ipv6=$(generate_fixed_ipv6 2)
+        local_ipv6="ad11::1/64"
+        remote_ipv6="ad11::2/64"
         local_domain="$iran_domain"
         remote_domain="$abroad_domain"
         echo "Configuring Local IPv6 as: $local_ipv6 (Iran)"
         echo "Configuring Remote IPv6 as: $remote_ipv6 (Abroad)"
     elif [[ "$server_location" == "2" ]]; then
         # تنظیم سرور محلی به عنوان خارج
-        local_ipv6=$(generate_fixed_ipv6 2)
-        remote_ipv6=$(generate_fixed_ipv6 1)
+        local_ipv6="ad11::2/64"
+        remote_ipv6="ad11::1/64"
         local_domain="$abroad_domain"
         remote_domain="$iran_domain"
         echo "Configuring Local IPv6 as: $local_ipv6 (Abroad)"
@@ -58,8 +47,8 @@ add_tunnel() {
     fi
 
     # تولید آدرس‌های IPv4 به صورت رندوم
-    local_ipv4=$(generate_ipv4)
-    remote_ipv4=$(generate_ipv4)
+    local_ipv4="172.18.20.1"
+    remote_ipv4="172.18.20.2"
     echo "Generated Local IPv4: $local_ipv4"
     echo "Generated Remote IPv4: $remote_ipv4"
 
