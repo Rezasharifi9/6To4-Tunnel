@@ -194,3 +194,7 @@ fi
 chmod +x /etc/rc.local
 
 echo "The tunnels have been configured and saved in /etc/rc.local for persistence after reboot."
+
+echo ""
+echo "Private IP6 of Local : " $local_ip
+echo "Private IP6 of Remote : " $remote_ip
