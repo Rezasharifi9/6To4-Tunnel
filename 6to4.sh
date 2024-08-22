@@ -24,7 +24,7 @@ add_tunnel() {
             echo "Invalid network name. Please enter a valid network name."
         fi
     done
-    
+
     # بررسی و حذف تونل‌های قدیمی با همین نام
     if ip link show | grep -q "$network_name"; then
         ip link delete "${network_name}_6To4" 2>/dev/null
@@ -47,14 +47,16 @@ add_tunnel() {
     done
 
     # تنظیم تونل 6to4 روی شبکه سیستم
-    ip tunnel add ${network_name}_6To4 mode sit remote $remote_ipv6_gre local $local_ipv6_6to4
-    ip -6 addr add ${local_ipv6_6to4} dev ${network_name}_6To4
-    ip link set ${network_name}_6To4 up
+    echo "Creating 6to4 tunnel..."
+    ip tunnel add ${network_name}_6To4 mode sit remote "$remote_ipv6_gre" local "$local_ipv6_6to4"
+    ip -6 addr add "$local_ipv6_6to4" dev "${network_name}_6To4"
+    ip link set "${network_name}_6To4" up
 
     # تنظیم تونل GRE روی شبکه سیستم
-    ip -6 tunnel add ${network_name}_GRE mode ip6gre remote $remote_ipv6_gre local $local_ipv6_6to4
-    ip addr add 172.20.1.$((RANDOM % 254 + 1))/30 dev ${network_name}_GRE
-    ip link set ${network_name}_GRE up
+    echo "Creating GRE tunnel..."
+    ip -6 tunnel add ${network_name}_GRE mode ip6gre remote "$remote_ipv6_gre" local "$local_ipv6_6to4"
+    ip addr add 172.20.1.$((RANDOM % 254 + 1))/30 dev "${network_name}_GRE"
+    ip link set "${network_name}_GRE" up
 
     # اضافه کردن تنظیمات به rc.local
     if [[ -f /etc/rc.local ]]; then
@@ -68,7 +70,7 @@ add_tunnel() {
     {
         echo "# Adding and configuring 6to4 tunnel for $network_name"
         echo "ip tunnel add ${network_name}_6To4 mode sit remote $remote_ipv6_gre local $local_ipv6_6to4"
-        echo "ip -6 addr add ${local_ipv6_6to4} dev ${network_name}_6To4"
+        echo "ip -6 addr add $local_ipv6_6to4 dev ${network_name}_6To4"
         echo "ip link set ${network_name}_6To4 up"
         echo ""
         echo "# Configuring GRE6 or IPIPv6 tunnel for $network_name"
