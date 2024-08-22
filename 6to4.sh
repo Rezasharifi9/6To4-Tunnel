@@ -12,17 +12,6 @@ show_menu() {
     echo "4. Exit"
 }
 
-# تابع برای اعتبارسنجی دامنه
-validate_domain() {
-    local domain="$1"
-    if [[ "$domain" =~ ^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$ ]]; then
-        return 0
-    else
-        echo "Invalid domain. Please enter a valid domain."
-        return 1
-    fi
-}
-
 # تابع برای تولید یک آدرس IPv6 رندوم
 generate_ipv6() {
     echo "2001:db8:$(openssl rand -hex 2):$(openssl rand -hex 2)::$(($RANDOM % 100))/64"
@@ -37,39 +26,39 @@ generate_ipv4() {
 add_tunnel() {
     echo "Adding a new tunnel..."
 
-    # دریافت دامنه‌ها از ورودی کاربر
-    read -p "Enter the domain for the remote server (Abroad): " remote_domain
+    # دریافت نام شبکه از کاربر
+    read -p "Enter the network name: " network_name
+
+    # دریافت دامنه‌ها از کاربر
     read -p "Enter the domain for the local server (Iran): " local_domain
+    read -p "Enter the domain for the remote server (Abroad): " remote_domain
 
     # پرسش از کاربر برای استفاده از آدرس‌های دستی یا تولید خودکار IPv6
-    read -p "Do you want to enter IPv6 addresses manually? (yes/no): " use_manual_ipv6
-    if [[ "$use_manual_ipv6" == "yes" ]]; then
-        read -p "Enter the local IPv6 address: " local_ipv6
-        read -p "Enter the remote IPv6 address: " remote_ipv6
-    else
+    read -p "Do you want to generate IPv6 addresses automatically? (yes/no): " generate_ipv6_option
+    if [[ "$generate_ipv6_option" == "yes" ]]; then
         local_ipv6=$(generate_ipv6)
         remote_ipv6=$(generate_ipv6)
         echo "Generated Local IPv6: $local_ipv6"
         echo "Generated Remote IPv6: $remote_ipv6"
+    else
+        read -p "Enter the local IPv6 address: " local_ipv6
+        read -p "Enter the remote IPv6 address: " remote_ipv6
     fi
 
-    # تولید IPv4 آدرس‌ها به‌صورت رندوم
+    # تولید آدرس‌های IPv4 به صورت رندوم
     local_ipv4=$(generate_ipv4)
     remote_ipv4=$(generate_ipv4)
     echo "Generated Local IPv4: $local_ipv4"
     echo "Generated Remote IPv4: $remote_ipv4"
 
-    # دریافت نام شبکه از کاربر
-    read -p "Enter the network name: " network_name
-
     # ذخیره اطلاعات شبکه در فایل محیطی
-    echo "REMOTE_DOMAIN=$remote_domain" > /etc/tunnel_env
+    echo "NETWORK_NAME=$network_name" > /etc/tunnel_env
     echo "LOCAL_DOMAIN=$local_domain" >> /etc/tunnel_env
+    echo "REMOTE_DOMAIN=$remote_domain" >> /etc/tunnel_env
     echo "LOCAL_IPV6=$local_ipv6" >> /etc/tunnel_env
     echo "REMOTE_IPV6=$remote_ipv6" >> /etc/tunnel_env
     echo "LOCAL_IPV4=$local_ipv4" >> /etc/tunnel_env
     echo "REMOTE_IPV4=$remote_ipv4" >> /etc/tunnel_env
-    echo "NETWORK_NAME=$network_name" >> /etc/tunnel_env
 
     # دریافت IPها از دامنه‌ها
     remote_ip=$(dig +short "$remote_domain")
@@ -84,18 +73,29 @@ add_tunnel() {
     echo "LOCAL_IP=$local_ip" >> /etc/tunnel_env
 
     # تنظیم تونل 6to4 و GRE
+    echo "Setting up tunnels for network: $network_name"
     ip link delete ${network_name}_6To4 2>/dev/null
     ip link delete ${network_name}_GRE 2>/dev/null
 
+    # ایجاد تونل 6to4
     ip tunnel add ${network_name}_6To4 mode sit remote "$remote_ip" local "$local_ip"
     ip -6 addr add "$local_ipv6" dev ${network_name}_6To4
     ip link set ${network_name}_6To4 up
+    echo "6to4 tunnel setup completed for $network_name."
 
+    # ایجاد تونل GRE
     ip -6 tunnel add ${network_name}_GRE mode ip6gre remote "$remote_ipv6" local "$local_ipv6"
     ip addr add "$local_ipv4"/30 dev ${network_name}_GRE
     ip link set ${network_name}_GRE up
+    echo "GRE tunnel setup completed for $network_name."
 
-    echo "Tunnel has been configured with IPv6 and IPv4 addresses."
+    # بررسی اینکه آیا تونل‌ها با موفقیت اضافه شده‌اند
+    if ip link show ${network_name}_6To4 && ip link show ${network_name}_GRE; then
+        echo "Tunnel has been successfully added to the network."
+    else
+        echo "Error: Unable to set up the tunnel."
+        exit 1
+    fi
 }
 
 # تابع برای ویرایش تونل موجود
