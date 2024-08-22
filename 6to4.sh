@@ -1,16 +1,5 @@
 #!/bin/bash
 
-# تابع برای اعتبارسنجی نام شبکه
-validate_network_name() {
-    local network_name="$1"
-    if [[ "$network_name" =~ ^[a-zA-Z0-9][a-zA-Z0-9-]*$ ]]; then
-        return 0
-    else
-        echo "Invalid network name. Please enter a valid network name."
-        return 1
-    fi
-}
-
 # تابع برای اعتبارسنجی دامنه
 validate_domain() {
     local domain="$1"
@@ -22,13 +11,8 @@ validate_domain() {
     fi
 }
 
-# دریافت نام شبکه با اعتبارسنجی
-while true; do
-    read -p "Enter network name: " network_name
-    if validate_network_name "$network_name"; then
-        break
-    fi
-done
+# دریافت نام شبکه از کاربر
+read -p "Enter network name: " network_name
 
 # بررسی اینکه آیا شبکه با این نام از قبل وجود دارد یا خیر
 if ip link show | grep -q "$network_name"; then
@@ -193,4 +177,4 @@ fi
 # دادن مجوز اجرایی به فایل /etc/rc.local
 chmod +x /etc/rc.local
 
-echo "The tunnels have been configured and saved in /etc/rc.local for
+echo "The tunnels have been configured and saved in /etc/rc.local for persistence after reboot."
