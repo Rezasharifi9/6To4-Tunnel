@@ -66,12 +66,12 @@ done
 # دریافت دامنه‌های Remote با اعتبارسنجی
 while true; do
     if [[ "$server_location" -eq 1 ]]; then
-        read -p "Enter the domain of the Khrej server (Remote IP): " remote_domain
+        read -p "Enter the domain of the Khrej server (Remote Domain): " remote_domain
         if validate_domain "$remote_domain"; then
             break
         fi
     elif [[ "$server_location" -eq 2 ]]; then
-        read -p "Enter the domain of the Iran server (Remote IP): " remote_domain
+        read -p "Enter the domain of the Iran server (Remote Domain): " remote_domain
         if validate_domain "$remote_domain"; then
             break
         fi
@@ -81,12 +81,12 @@ done
 # دریافت دامنه‌های Local با اعتبارسنجی
 while true; do
     if [[ "$server_location" -eq 1 ]]; then
-        read -p "Enter the domain of the Iran server (Local IP): " local_domain
+        read -p "Enter the domain of the Iran server (Local Domain): " local_domain
         if validate_domain "$local_domain"; then
             break
         fi
     elif [[ "$server_location" -eq 2 ]]; then
-        read -p "Enter the domain of the Kharej server (Local IP): " local_domain
+        read -p "Enter the domain of the Kharej server (Local Domain): " local_domain
         if validate_domain "$local_domain"; then
             break
         fi
@@ -196,5 +196,5 @@ chmod +x /etc/rc.local
 echo "The tunnels have been configured and saved in /etc/rc.local for persistence after reboot."
 
 echo ""
-echo "Private IP6 of Local : " $local_ip
-echo "Private IP6 of Remote : " $remote_ip
+echo "Private IP6 of Local : " $local_ipv6_6to4
+echo "Private IP6 of Remote : " $remote_ipv6_gre
