@@ -35,15 +35,15 @@ if ip link show | grep -q "$network_name"; then
     echo "Warning: The network '$network_name' already exists."
     read -p "If you continue, this network will be deleted and replaced with a new configuration. Do you want to continue? (yes/no): " confirm_replace
 
-    if [[ "$confirm_replace" != "yes" ]]; then
+    if [[ "$confirm_replace" == "yes" ]]; then
+        # حذف شبکه‌های قبلی با این نام
+        ip link delete ${network_name}_6To4 2>/dev/null
+        ip link delete ${network_name}_GRE 2>/dev/null
+        echo "Previous network '$network_name' has been deleted."
+    else
         echo "Operation aborted."
         exit 0
     fi
-
-    # حذف شبکه‌های قبلی با این نام
-    ip link delete ${network_name}_6To4 2>/dev/null
-    ip link delete ${network_name}_GRE 2>/dev/null
-    echo "Previous network '$network_name' has been deleted."
 fi
 
 # تعیین نوع سرور (ایران یا خارج)
@@ -63,7 +63,7 @@ while true; do
     fi
 done
 
-# دریافت دامنه‌ها با اعتبارسنجی
+# دریافت دامنه‌های Remote با اعتبارسنجی
 while true; do
     if [[ "$server_location" -eq 1 ]]; then
         read -p "Enter the domain of the foreign server (Remote IP for 6to4 tunnel): " remote_domain
@@ -78,6 +78,7 @@ while true; do
     fi
 done
 
+# دریافت دامنه‌های Local با اعتبارسنجی
 while true; do
     if [[ "$server_location" -eq 1 ]]; then
         read -p "Enter the domain of the Iranian server (Local IP for 6to4 tunnel): " local_domain
@@ -192,4 +193,4 @@ fi
 # دادن مجوز اجرایی به فایل /etc/rc.local
 chmod +x /etc/rc.local
 
-echo "The tunnels have been configured and saved in /etc/rc.local for persistence after reboot."
+echo "The tunnels have been configured and saved in /etc/rc.local for
