@@ -90,7 +90,7 @@ sudo ./6to4.sh
 ### Execute Tunnel When Reboot Server
 
 ```bash
-curl -O https://raw.githubusercontent.com/your-username/your-repo/main/update.sh
+curl -O https://raw.githubusercontent.com/Rezasharifi9/6To4-Tunnel/main/update.sh
 chmod +x update.sh
 sudo ./update.sh
 ```
