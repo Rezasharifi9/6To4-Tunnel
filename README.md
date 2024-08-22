@@ -19,4 +19,5 @@ To use this script, you can download and execute it directly from GitHub.
 First, download the script using `curl` or `wget`:
 
 ```bash
-curl -O https://raw.githubusercontent.com/Rezasharifi9/6To4-Tunnel/edit/main/6to4.sh
+curl -s https://raw.githubusercontent.com/Rezasharifi9/6To4-Tunnel/main/6to4.sh | sudo bash
+
