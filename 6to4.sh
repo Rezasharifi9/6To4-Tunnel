@@ -66,12 +66,12 @@ done
 # دریافت دامنه‌های Remote با اعتبارسنجی
 while true; do
     if [[ "$server_location" -eq 1 ]]; then
-        read -p "Enter the domain of the foreign server (Remote IP): " remote_domain
+        read -p "Enter the domain of the Khrej server (Remote IP): " remote_domain
         if validate_domain "$remote_domain"; then
             break
         fi
     elif [[ "$server_location" -eq 2 ]]; then
-        read -p "Enter the domain of the Iranian server (Remote IP): " remote_domain
+        read -p "Enter the domain of the Iran server (Remote IP): " remote_domain
         if validate_domain "$remote_domain"; then
             break
         fi
