@@ -48,7 +48,7 @@ fi
 
 # تعیین نوع سرور (ایران یا خارج)
 while true; do
-    read -p "Is this server in Iran (1) or Abroad (2)? " server_location
+    read -p "Is this server in Iran (1) or Kharej (2)? " server_location
 
     if [[ "$server_location" -eq 1 ]]; then
         local_ipv6_suffix="::1"
@@ -59,19 +59,19 @@ while true; do
         remote_ipv6_suffix="::1"
         break
     else
-        echo "Invalid input! Please enter 1 for Iran or 2 for Abroad."
+        echo "Invalid input! Please enter 1 for Iran or 2 for Kharej."
     fi
 done
 
 # دریافت دامنه‌های Remote با اعتبارسنجی
 while true; do
     if [[ "$server_location" -eq 1 ]]; then
-        read -p "Enter the domain of the foreign server (Remote IP for 6to4 tunnel): " remote_domain
+        read -p "Enter the domain of the foreign server (Remote IP): " remote_domain
         if validate_domain "$remote_domain"; then
             break
         fi
     elif [[ "$server_location" -eq 2 ]]; then
-        read -p "Enter the domain of the Iranian server (Remote IP for 6to4 tunnel): " remote_domain
+        read -p "Enter the domain of the Iranian server (Remote IP): " remote_domain
         if validate_domain "$remote_domain"; then
             break
         fi
@@ -81,12 +81,12 @@ done
 # دریافت دامنه‌های Local با اعتبارسنجی
 while true; do
     if [[ "$server_location" -eq 1 ]]; then
-        read -p "Enter the domain of the Iranian server (Local IP for 6to4 tunnel): " local_domain
+        read -p "Enter the domain of the Iran server (Local IP): " local_domain
         if validate_domain "$local_domain"; then
             break
         fi
     elif [[ "$server_location" -eq 2 ]]; then
-        read -p "Enter the domain of the foreign server (Local IP for 6to4 tunnel): " local_domain
+        read -p "Enter the domain of the Kharej server (Local IP): " local_domain
         if validate_domain "$local_domain"; then
             break
         fi
