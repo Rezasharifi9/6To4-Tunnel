@@ -200,9 +200,9 @@ edit_tunnel() {
     
     # دریافت نام شبکه با اعتبارسنجی
     while true; do
-        read -p "Enter the name of the tunnel you want to edit: " network_name
-        if validate_network_name```bash
- "$network_name"; then
+        read -p "Enter the name of the tunnel you want to edit: " network```bash
+_name
+        if validate_network_name "$network_name"; then
             break
         fi
     done
