@@ -155,6 +155,10 @@ ip addr add $local_ipv4_gre/30 dev $tunnel_name_gre6
 ip link set $tunnel_name_gre6 mtu 1436
 ip link set $tunnel_name_gre6 up
 
+# فعال کردن IPv4 forwarding
+echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf
+sysctl -p
+
 # بررسی اینکه آیا فایل /etc/rc.local وجود دارد یا خیر
 if [[ -f /etc/rc.local ]]; then
     echo "Found existing /etc/rc.local file. Appending tunnel configuration."
@@ -165,19 +169,20 @@ else
 fi
 
 # اضافه کردن دستورات تونل به انتهای فایل /etc/rc.local
-echo "# Adding and configuring 6to4 tunnel" >> /etc/rc.local
-echo "ip tunnel add $tunnel_name_6to4 mode sit remote $remote_ip local $local_ip" >> /etc/rc.local
-echo "ip -6 addr add $local_ipv6_6to4/64 dev $tunnel_name_6to4" >> /etc/rc.local
-echo "ip link set $tunnel_name_6to4 mtu 1480" >> /etc/rc.local
-echo "ip link set $tunnel_name_6to4 up" >> /etc/rc.local
-echo "" >> /etc/rc.local
-
-echo "# Configuring GRE6 or IPIPv6 tunnel" >> /etc/rc.local
-echo "ip -6 tunnel add $tunnel_name_gre6 mode ip6gre remote $remote_ipv6_gre local $local_ipv6_6to4" >> /etc/rc.local
-echo "ip addr add $local_ipv4_gre/30 dev $tunnel_name_gre6" >> /etc/rc.local
-echo "ip link set $tunnel_name_gre6 mtu 1436" >> /etc/rc.local
-echo "ip link set $tunnel_name_gre6 up" >> /etc/rc.local
-echo "" >> /etc/rc.local
+{
+    echo "# Adding and configuring 6to4 tunnel"
+    echo "ip tunnel add $tunnel_name_6to4 mode sit remote $remote_ip local $local_ip"
+    echo "ip -6 addr add $local_ipv6_6to4/64 dev $tunnel_name_6to4"
+    echo "ip link set $tunnel_name_6to4 mtu 1480"
+    echo "ip link set $tunnel_name_6to4 up"
+    echo ""
+    echo "# Configuring GRE6 or IPIPv6 tunnel"
+    echo "ip -6 tunnel add $tunnel_name_gre6 mode ip6gre remote $remote_ipv6_gre local $local_ipv6_6to4"
+    echo "ip addr add $local_ipv4_gre/30 dev $tunnel_name_gre6"
+    echo "ip link set $tunnel_name_gre6 mtu 1436"
+    echo "ip link set $tunnel_name_gre6 up"
+    echo ""
+} >> /etc/rc.local
 
 # بررسی وجود exit 0 در /etc/rc.local و افزودن آن در صورت عدم وجود
 if ! grep -q "exit 0" /etc/rc.local; then
