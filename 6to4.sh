@@ -41,42 +41,50 @@ if ip link show | grep -q "$network_name"; then
     fi
 
     # حذف شبکه‌های قبلی با این نام
-    ip link delete $network_name"_6To4" 2>/dev/null
-    ip link delete $network_name"_GRE" 2>/dev/null
+    ip link delete ${network_name}_6To4 2>/dev/null
+    ip link delete ${network_name}_GRE 2>/dev/null
     echo "Previous network '$network_name' has been deleted."
 fi
 
 # تعیین نوع سرور (ایران یا خارج)
-read -p "Is this server in Iran (1) or Kharej (2)? " server_location
+while true; do
+    read -p "Is this server in Iran (1) or Abroad (2)? " server_location
+
+    if [[ "$server_location" -eq 1 ]]; then
+        local_ipv6_suffix="::1"
+        remote_ipv6_suffix="::2"
+        break
+    elif [[ "$server_location" -eq 2 ]]; then
+        local_ipv6_suffix="::2"
+        remote_ipv6_suffix="::1"
+        break
+    else
+        echo "Invalid input! Please enter 1 for Iran or 2 for Abroad."
+    fi
+done
 
 # دریافت دامنه‌ها با اعتبارسنجی
 while true; do
-    if [ "$server_location" -eq 1 ]; then
-        local_ipv6_suffix="::1"
-        remote_ipv6_suffix="::2"
-        read -p "Enter the domain of the Kharej server (Remote IP for 6to4 tunnel): " remote_domain
+    if [[ "$server_location" -eq 1 ]]; then
+        read -p "Enter the domain of the foreign server (Remote IP for 6to4 tunnel): " remote_domain
         if validate_domain "$remote_domain"; then
             break
         fi
-    elif [ "$server_location" -eq 2 ]; then
-        local_ipv6_suffix="::2"
-        remote_ipv6_suffix="::1"
-        read -p "Enter the domain of the Iran server (Remote IP for 6to4 tunnel): " remote_domain
+    elif [[ "$server_location" -eq 2 ]]; then
+        read -p "Enter the domain of the Iranian server (Remote IP for 6to4 tunnel): " remote_domain
         if validate_domain "$remote_domain"; then
             break
         fi
-    else
-        echo "Invalid input! Please enter 1 for Iran or 2 for Kharej."
     fi
 done
 
 while true; do
-    if [ "$server_location" -eq 1 ]; then
+    if [[ "$server_location" -eq 1 ]]; then
         read -p "Enter the domain of the Iranian server (Local IP for 6to4 tunnel): " local_domain
         if validate_domain "$local_domain"; then
             break
         fi
-    elif [ "$server_location" -eq 2 ]; then
+    elif [[ "$server_location" -eq 2 ]]; then
         read -p "Enter the domain of the foreign server (Local IP for 6to4 tunnel): " local_domain
         if validate_domain "$local_domain"; then
             break
@@ -85,16 +93,16 @@ while true; do
 done
 
 # حل دامنه به IP برای Remote و Local
-remote_ip=$(dig +short $remote_domain)
-local_ip=$(dig +short $local_domain)
+remote_ip=$(dig +short "$remote_domain")
+local_ip=$(dig +short "$local_domain")
 
 # بررسی اینکه آیا دامنه‌ها به IP حل شده‌اند یا خیر
-if [ -z "$remote_ip" ]; then
+if [[ -z "$remote_ip" ]]; then
     echo "Error: Unable to resolve IP from domain $remote_domain"
     exit 1
 fi
 
-if [ -z "$local_ip" ]; then
+if [[ -z "$local_ip" ]]; then
     echo "Error: Unable to resolve IP from domain $local_domain"
     exit 1
 fi
@@ -123,7 +131,7 @@ generate_remote_ipv6() {
 
 # تولید Local IPv6 و Remote IPv6
 local_ipv6_6to4=$(generate_local_ipv6)
-remote_ipv6_gre=$(generate_remote_ipv6 ${local_ipv6_6to4%::*})
+remote_ipv6_gre=$(generate_remote_ipv6 "${local_ipv6_6to4%::*}")
 
 # تابع تولید آدرس IPv4 تصادفی در بازه 172.20.1.0/24
 generate_ipv4() {
@@ -148,7 +156,7 @@ ip link set $tunnel_name_gre6 mtu 1436
 ip link set $tunnel_name_gre6 up
 
 # بررسی اینکه آیا فایل /etc/rc.local وجود دارد یا خیر
-if [ -f /etc/rc.local ]; then
+if [[ -f /etc/rc.local ]]; then
     echo "Found existing /etc/rc.local file. Appending tunnel configuration."
 else
     echo "No /etc/rc.local found. Creating new /etc/rc.local file."
