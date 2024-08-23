@@ -196,8 +196,7 @@ remove_tunnel() {
 # تابع برای نصب 3x-ui
 install_3xui() {
     echo "Downloading and installing 3x-ui..."
-    bash <(curl -Ls https```bash
-://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
+    bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
 }
 
 # تابع برای ویرایش تونل موجود
