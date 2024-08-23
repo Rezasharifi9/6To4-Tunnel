@@ -124,17 +124,40 @@ add_tunnel() {
     fi
 }
 
-# تابع برای حذف تونل موجود
+# تابع برای حذف تونل موجود با نمایش لیست و حذف فایل پیکربندی
 remove_tunnel() {
     echo "Removing a tunnel..."
 
-    # دریافت نام شبکه از کاربر
-    read -p "Enter the name of the tunnel you want to remove: " network_name
+    # پیدا کردن و نمایش تمامی تونل‌ها
+    tunnels=($(ls $TUNNEL_DIR | grep '_env' | sed 's/_env//'))
+    if [ ${#tunnels[@]} -eq 0 ]; then
+        echo "No tunnels found."
+        return
+    fi
 
-    # حذف تونل‌های مربوط به این نام
-    ip link delete ${network_name}_6To4 2>/dev/null
-    ip link delete ${network_name}_GRE 2>/dev/null
-    echo "Tunnel '$network_name' has been removed."
+    echo "Available tunnels:"
+    for i in "${!tunnels[@]}"; do
+        echo "$((i+1)). ${tunnels[$i]}"
+    done
+
+    # دریافت انتخاب کاربر
+    read -p "Enter the number of the tunnel to remove: " choice
+
+    # اعتبارسنجی ورودی کاربر
+    if [[ "$choice" -gt 0 && "$choice" -le ${#tunnels[@]} ]]; then
+        selected_tunnel=${tunnels[$((choice-1))]}
+
+        # حذف تونل‌های مرتبط با نام انتخاب شده
+        ip link delete ${selected_tunnel}_6To4 2>/dev/null
+        ip link delete ${selected_tunnel}_GRE 2>/dev/null
+
+        # حذف فایل پیکربندی
+        rm -f "$TUNNEL_DIR/${selected_tunnel}_env"
+
+        echo "Tunnel '$selected_tunnel' and its configuration file have been removed."
+    else
+        echo "Invalid selection."
+    fi
 }
 
 # تابع برای نصب 3x-ui
@@ -176,8 +199,9 @@ edit_tunnel() {
 # نمایش منوی اصلی و اجرای انتخاب کاربر
 while true; do
     show_menu
-    read -p "Please enter your choice (1-5): " choice
+    read -p "Please enter your choice (1-5): " choice### ادامه اسکریپت:
 
+```bash
     case $choice in
         1)
             add_tunnel
