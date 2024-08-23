@@ -8,7 +8,7 @@ show_menu() {
     echo "Please select an option:"
     echo "1. Add a new tunnel"
     echo "2. Edit an existing tunnel"
-    echo "3. Install iptables and forward a port"
+    echo "3. Install iptables and forward traffic through GRE"
     echo "4. Exit"
 }
 
@@ -99,12 +99,20 @@ add_tunnel() {
     fi
 }
 
-validate_ipv6() {
-    if [[ $1 =~ ^([0-9a-fA-F]{1,4}:){1,7}[0-9a-fA-F]{1,4}$ || $1 =~ ^([0-9a-fA-F]{1,4}::[0-9a-fA-F]{1,4})$ ]]; then
-        return 0
-    else
-        return 1
-    fi
+# تابع برای هدایت ترافیک از طریق GRE
+redirect_traffic_through_gre() {
+    echo "Redirecting traffic through GRE tunnel..."
+
+    # قانون iptables برای مارک کردن ترافیک HTTP (پورت 80)
+    sudo iptables -t mangle -A PREROUTING -p tcp --dport 80 -j MARK --set-mark 1
+
+    # تنظیم قانون مسیریابی بر اساس مارک
+    sudo ip rule add fwmark 1 table 100
+
+    # تنظیم مسیریابی برای جدول 100 که ترافیک را از طریق تونل GRE هدایت می‌کند
+    sudo ip route add default dev ${network_name}_GRE table 100
+
+    echo "Traffic is now being redirected through GRE tunnel."
 }
 
 # تابع برای ویرایش تونل موجود
@@ -136,38 +144,15 @@ edit_tunnel() {
     add_tunnel
 }
 
-# تابع برای نصب iptables و فوروارد پورت
+# تابع برای نصب iptables و فوروارد ترافیک از طریق GRE
 install_iptables_and_forward_port() {
-    echo "Installing iptables and forwarding a port..."
+    echo "Installing iptables and forwarding traffic through GRE..."
 
     # نصب iptables
     sudo apt-get update
     sudo apt-get install -y iptables ip6tables
 
-    # دریافت اطلاعات فوروارد پورت
-    while true; do
-        read -p "Enter the port you want to forward: " port
-        if [[ "$port" =~ ^[0-9]+$ ]]; then
-            break
-        else
-            echo "Invalid port number. Please enter a valid port number."
-        fi
-    done
-
-    while true; do
-        read -p "Enter the IPv6 address of the tunnel: " ipv6_address
-        if validate_ipv6 "$ipv6_address"; then
-            break
-        else
-            echo "Invalid IPv6 address. Please enter a valid IPv6 address."
-        fi
-    done
-
-    # اجرای دستور iptables برای فوروارد پورت
-    sudo ip6tables -t nat -A PREROUTING -p tcp --dport "$port" -j DNAT --to-destination "[$ipv6_address]:$port"
-    sudo ip6tables -t nat -A POSTROUTING -j MASQUERADE
-
-    echo "Port $port has been forwarded to $ipv6_address."
+    redirect_traffic_through_gre
 }
 
 # نمایش منوی اصلی و اجرای انتخاب کاربر
