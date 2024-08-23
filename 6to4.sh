@@ -1,15 +1,25 @@
 #!/bin/bash
 
-# تابع برای نمایش منوی اصلی
-show_menu() {
-    echo "============================================"
-    echo " Welcome to the Tunnel Configuration Script "
-    echo "============================================"
-    echo "Please select an option:"
-    echo "1. Add a new tunnel"
-    echo "2. Edit an existing tunnel"
-    echo "3. Install 3x-ui"
-    echo "4. Exit"
+# مسیر پوشه‌ای که اطلاعات تونل‌ها را ذخیره می‌کند
+TUNNEL_DIR="/etc/tunnel_configs"
+
+# اطمینان از اینکه پوشه وجود دارد
+mkdir -p "$TUNNEL_DIR"
+
+# تابع برای افزودن یا به‌روزرسانی یک مقدار در فایل
+update_env_file() {
+    local tunnel_file=$1
+    local key=$2
+    local value=$3
+
+    # اگر کلید موجود است، مقدار آن را به‌روزرسانی کن، در غیر این صورت کلید را اضافه کن
+    if grep -q "^$key=" "$tunnel_file"; then
+        # به‌روزرسانی خط با مقدار جدید
+        sed -i "s/^$key=.*/$key=$value/" "$tunnel_file"
+    else
+        # اضافه کردن کلید جدید
+        echo "$key=$value" >> "$tunnel_file"
+    fi
 }
 
 # تابع برای افزودن تونل جدید و ذخیره اطلاعات شبکه
@@ -18,6 +28,7 @@ add_tunnel() {
 
     # دریافت نام شبکه از کاربر
     read -p "Enter the network name: " network_name
+    TUNNEL_FILE="$TUNNEL_DIR/${network_name}_env"
 
     # دریافت دامنه‌ها از کاربر
     read -p "Enter the domain for the Iran server: " iran_domain
@@ -52,15 +63,15 @@ add_tunnel() {
     echo "Generated Local IPv4: $local_ipv4"
     echo "Generated Remote IPv4: $remote_ipv4"
 
-    # ذخیره اطلاعات شبکه در فایل محیطی
-    echo "NETWORK_NAME=$network_name" > /etc/tunnel_env
-    echo "LOCAL_DOMAIN=$local_domain" >> /etc/tunnel_env
-    echo "REMOTE_DOMAIN=$remote_domain" >> /etc/tunnel_env
-    echo "LOCAL_IPV6=$local_ipv6" >> /etc/tunnel_env
-    echo "REMOTE_IPV6=$remote_ipv6" >> /etc/tunnel_env
-    echo "LOCAL_IPV4=$local_ipv4" >> /etc/tunnel_env
-    echo "REMOTE_IPV4=$remote_ipv4" >> /etc/tunnel_env
-    echo "SERVER_LOCATION=$server_location" >> /etc/tunnel_env
+    # به‌روزرسانی یا اضافه کردن اطلاعات جدید به فایل تونل
+    update_env_file "$TUNNEL_FILE" "NETWORK_NAME" "$network_name"
+    update_env_file "$TUNNEL_FILE" "LOCAL_DOMAIN" "$local_domain"
+    update_env_file "$TUNNEL_FILE" "REMOTE_DOMAIN" "$remote_domain"
+    update_env_file "$TUNNEL_FILE" "LOCAL_IPV6" "$local_ipv6"
+    update_env_file "$TUNNEL_FILE" "REMOTE_IPV6" "$remote_ipv6"
+    update_env_file "$TUNNEL_FILE" "LOCAL_IPV4" "$local_ipv4"
+    update_env_file "$TUNNEL_FILE" "REMOTE_IPV4" "$remote_ipv4"
+    update_env_file "$TUNNEL_FILE" "SERVER_LOCATION" "$server_location"
 
     # دریافت IPها از دامنه‌ها
     remote_ip=$(dig +short "$remote_domain")
@@ -71,8 +82,8 @@ add_tunnel() {
         exit 1
     fi
 
-    echo "REMOTE_IP=$remote_ip" >> /etc/tunnel_env
-    echo "LOCAL_IP=$local_ip" >> /etc/tunnel_env
+    update_env_file "$TUNNEL_FILE" "REMOTE_IP" "$remote_ip"
+    update_env_file "$TUNNEL_FILE" "LOCAL_IP" "$local_ip"
 
     # تنظیم تونل 6to4 و GRE
     echo "Setting up tunnels for network: $network_name"
@@ -113,6 +124,7 @@ edit_tunnel() {
     # دریافت نام شبکه با اعتبارسنجی
     while true; do
         read -p "Enter the name of the tunnel you want to edit: " network_name
+        TUNNEL_FILE="$TUNNEL_DIR/${network_name}_env"
         if [[ "$network_name" =~ ^[a-zA-Z0-9_-]+$ ]]; then
             break
         else
@@ -120,8 +132,8 @@ edit_tunnel() {
         fi
     done
 
-    # بررسی اینکه آیا شبکه با این نام وجود دارد یا خیر
-    if ! ip link show | grep -q "$network_name"; then
+    # بررسی اینکه آیا فایل تونل با این نام وجود دارد یا خیر
+    if [[ ! -f "$TUNNEL_FILE" ]]; then
         echo "The network '$network_name' does not exist. Exiting."
         return
     fi
