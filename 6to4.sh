@@ -201,7 +201,6 @@ while true; do
     show_menu
     read -p "Please enter your choice (1-5): " choice### ادامه اسکریپت:
 
-```bash
     case $choice in
         1)
             add_tunnel
