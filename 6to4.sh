@@ -216,7 +216,7 @@ while true; do
             ;;
         5)
             echo "Exiting the script. Goodbye!"
-            exit```bash
+            exit
             ;;
         *)
             echo "Invalid choice. Please enter a number between 1 and 5."
