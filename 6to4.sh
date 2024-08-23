@@ -199,9 +199,9 @@ edit_tunnel() {
 # نمایش منوی اصلی و اجرای انتخاب کاربر
 while true; do
     show_menu
-    read -p "Please enter your choice (1-5): " choice### ادامه اسکریپت:
+    read -p "Please enter your choice (1-5): " choice
 
-    case $choice in
+    case "$choice" in
         1)
             add_tunnel
             ;;
@@ -216,7 +216,7 @@ while true; do
             ;;
         5)
             echo "Exiting the script. Goodbye!"
-            exit 0
+            exit```bash
             ;;
         *)
             echo "Invalid choice. Please enter a number between 1 and 5."
