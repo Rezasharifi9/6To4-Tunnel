@@ -8,7 +8,7 @@ show_menu() {
     echo "Please select an option:"
     echo "1. Add a new tunnel"
     echo "2. Edit an existing tunnel"
-    echo "3. Install iptables and forward traffic through GRE"
+    echo "3. Install 3x-ui"
     echo "4. Exit"
 }
 
@@ -99,20 +99,10 @@ add_tunnel() {
     fi
 }
 
-# تابع برای هدایت ترافیک از طریق GRE
-redirect_traffic_through_gre() {
-    echo "Redirecting traffic through GRE tunnel..."
-
-    # قانون iptables برای مارک کردن ترافیک HTTP (پورت 80)
-    sudo iptables -t mangle -A PREROUTING -p tcp --dport 80 -j MARK --set-mark 1
-
-    # تنظیم قانون مسیریابی بر اساس مارک
-    sudo ip rule add fwmark 1 table 100
-
-    # تنظیم مسیریابی برای جدول 100 که ترافیک را از طریق تونل GRE هدایت می‌کند
-    sudo ip route add default dev ${network_name}_GRE table 100
-
-    echo "Traffic is now being redirected through GRE tunnel."
+# تابع برای نصب 3x-ui
+install_3xui() {
+    echo "Downloading and installing 3x-ui..."
+    bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
 }
 
 # تابع برای ویرایش تونل موجود
@@ -144,17 +134,6 @@ edit_tunnel() {
     add_tunnel
 }
 
-# تابع برای نصب iptables و فوروارد ترافیک از طریق GRE
-install_iptables_and_forward_port() {
-    echo "Installing iptables and forwarding traffic through GRE..."
-
-    # نصب iptables
-    sudo apt-get update
-    sudo apt-get install -y iptables ip6tables
-
-    redirect_traffic_through_gre
-}
-
 # نمایش منوی اصلی و اجرای انتخاب کاربر
 while true; do
     show_menu
@@ -168,7 +147,7 @@ while true; do
             edit_tunnel
             ;;
         3)
-            install_iptables_and_forward_port
+            install_3xui
             ;;
         4)
             echo "Exiting the script. Goodbye!"
