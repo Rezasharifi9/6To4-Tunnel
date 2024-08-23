@@ -14,8 +14,9 @@ show_menu() {
     echo "Please select an option:"
     echo "1. Add a new tunnel"
     echo "2. Edit an existing tunnel"
-    echo "3. Install 3x-ui"
-    echo "4. Exit"
+    echo "3. Remove a tunnel"
+    echo "4. Install 3x-ui"
+    echo "5. Exit"
 }
 
 # تابع برای افزودن یا به‌روزرسانی یک مقدار در فایل
@@ -123,6 +124,19 @@ add_tunnel() {
     fi
 }
 
+# تابع برای حذف تونل موجود
+remove_tunnel() {
+    echo "Removing a tunnel..."
+
+    # دریافت نام شبکه از کاربر
+    read -p "Enter the name of the tunnel you want to remove: " network_name
+
+    # حذف تونل‌های مربوط به این نام
+    ip link delete ${network_name}_6To4 2>/dev/null
+    ip link delete ${network_name}_GRE 2>/dev/null
+    echo "Tunnel '$network_name' has been removed."
+}
+
 # تابع برای نصب 3x-ui
 install_3xui() {
     echo "Downloading and installing 3x-ui..."
@@ -153,7 +167,7 @@ edit_tunnel() {
     # حذف تونل‌های موجود با این نام
     ip link delete ${network_name}_6To4 2>/dev/null
     ip link delete ${network_name}_GRE 2>/dev/null
-    echo "Previous network '$network_name' has been deleted."
+    echo "Previous tunnel '$network_name' has been deleted."
 
     # فراخوانی تابع add_tunnel برای ایجاد تونل جدید با اطلاعات جدید
     add_tunnel
@@ -162,7 +176,7 @@ edit_tunnel() {
 # نمایش منوی اصلی و اجرای انتخاب کاربر
 while true; do
     show_menu
-    read -p "Please enter your choice (1-4): " choice
+    read -p "Please enter your choice (1-5): " choice
 
     case $choice in
         1)
@@ -172,14 +186,17 @@ while true; do
             edit_tunnel
             ;;
         3)
-            install_3xui
+            remove_tunnel
             ;;
         4)
+            install_3xui
+            ;;
+        5)
             echo "Exiting the script. Goodbye!"
             exit 0
             ;;
         *)
-            echo "Invalid choice. Please enter a number between 1 and 4."
+            echo "Invalid choice. Please enter a number between 1 and 5."
             ;;
     esac
 done
