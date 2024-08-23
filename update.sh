@@ -3,67 +3,72 @@
 # مسیر پوشه‌ای که اطلاعات تونل‌ها را ذخیره می‌کند
 TUNNEL_DIR="/etc/tunnel_configs"
 
-# تابع برای اعتبارسنجی وجود فایل ذخیره اطلاعات
-validate_tunnel_file() {
-    local tunnel_file=$1
-    if [[ ! -f "$tunnel_file" ]]; then
-        echo "Tunnel information not found for this network. Please configure the tunnel first."
-        exit 1
-    fi
+# تابع برای حذف تونل‌های مشخص شده بر اساس نام شبکه
+delete_specific_tunnels() {
+    echo "Deleting specified tunnels..."
+    for tunnel_file in "$TUNNEL_DIR"/*_env; do
+        if [[ -f "$tunnel_file" ]]; then
+            # بارگذاری اطلاعات تونل از فایل
+            source "$tunnel_file"
+
+            # حذف تونل‌هایی که با نام این شبکه ساخته شده‌اند
+            ip link delete ${NETWORK_NAME}_6To4 2>/dev/null
+            ip link delete ${NETWORK_NAME}_GRE 2>/dev/null
+            echo "Deleted tunnel: $NETWORK_NAME"
+        fi
+    done
+    echo "Specified tunnels have been deleted."
 }
 
-# تابع برای آپدیت تونل
-update_tunnel() {
-    # دریافت نام شبکه از کاربر
-    read -p "Enter the network name to update: " network_name
-    TUNNEL_FILE="$TUNNEL_DIR/${network_name}_env"
+# تابع برای به‌روزرسانی تمامی تونل‌های مشخص شده
+update_all_tunnels() {
+    echo "Updating all specified tunnels..."
 
-    # بررسی اینکه فایل تونل وجود دارد یا نه
-    validate_tunnel_file "$TUNNEL_FILE"
-
-    # بارگذاری اطلاعات تونل از فایل
-    source "$TUNNEL_FILE"
-
-    # استفاده از اطلاعات ذخیره شده برای تصمیم‌گیری
-    if [[ "$SERVER_LOCATION" == "Iran" ]]; then
-        echo "This server is in Iran. Configuring based on that."
-        local_ipv6="$LOCAL_IPV6"
-        remote_ipv6="$REMOTE_IPV6"
-        remote_domain="$REMOTE_DOMAIN"
-    elif [[ "$SERVER_LOCATION" == "Abroad" ]]; then
-        echo "This server is Abroad. Configuring based on that."
-        local_ipv6="$REMOTE_IPV6"
-        remote_ipv6="$LOCAL_IPV6"
-        remote_domain="$LOCAL_DOMAIN"
-    else
-        echo "Invalid server location information."
+    # چک کردن اینکه پوشه‌ی تونل‌ها وجود دارد
+    if [[ ! -d "$TUNNEL_DIR" ]]; then
+        echo "No tunnel configurations found. Please add tunnels first."
         exit 1
     fi
 
-    # به‌روزرسانی تونل با اطلاعات جدید
-    remote_ip=$(dig +short "$remote_domain")
+    # پردازش تمامی فایل‌های موجود در پوشه‌ی تونل‌ها
+    for tunnel_file in "$TUNNEL_DIR"/*_env; do
+        if [[ -f "$tunnel_file" ]]; then
+            # بارگذاری اطلاعات تونل از فایل
+            source "$tunnel_file"
 
-    if [[ -z "$remote_ip" ]]; then
-        echo "Error: Could not resolve the domain name to an IP address."
-        exit 1
-    fi
+            echo "Updating tunnel for network: $NETWORK_NAME"
 
-    echo "Updating tunnel with new settings..."
+            # دریافت IPها از دامنه‌ها
+            remote_ip=$(dig +short "$REMOTE_DOMAIN")
+            local_ip=$(dig +short "$LOCAL_DOMAIN")
 
-    ip link delete ${NETWORK_NAME}_6To4 2>/dev/null
-    ip link delete ${NETWORK_NAME}_GRE 2>/dev/null
+            if [[ -z "$remote_ip" || -z "$local_ip" ]]; then
+                echo "Error: Could not resolve one or both domain names to IP addresses for $NETWORK_NAME."
+                continue
+            fi
 
-    # ایجاد تونل 6to4
-    ip tunnel add ${NETWORK_NAME}_6To4 mode sit remote $remote_ip local $local_ip
-    ip -6 addr add $local_ipv6/64 dev ${NETWORK_NAME}_6To4
-    ip link set ${NETWORK_NAME}_6To4 up
+            echo "Resolved IPs: Local IP = $local_ip, Remote IP = $remote_ip"
 
-    # ایجاد تونل GRE
-    ip -6 tunnel add ${NETWORK_NAME}_GRE mode ip6gre remote $remote_ipv6 local $local_ipv6
-    ip addr add $LOCAL_IPV4/30 dev ${NETWORK_NAME}_GRE
-    ip link set ${NETWORK_NAME}_GRE up
+            # تنظیم تونل 6to4 و GRE
+            echo "Setting up tunnels for network: $NETWORK_NAME"
 
-    echo "Tunnel has been successfully updated."
+            # ایجاد تونل 6to4
+            ip tunnel add ${NETWORK_NAME}_6To4 mode sit remote $remote_ip local $local_ip
+            ip -6 addr add $LOCAL_IPV6/64 dev ${NETWORK_NAME}_6To4
+            ip link set ${NETWORK_NAME}_6To4 up
+            echo "6to4 tunnel setup completed for $NETWORK_NAME."
+
+            # ایجاد تونل GRE
+            ip -6 tunnel add ${NETWORK_NAME}_GRE mode ip6gre remote $REMOTE_IPV6 local $LOCAL_IPV6
+            ip addr add $LOCAL_IPV4/30 dev ${NETWORK_NAME}_GRE
+            ip link set ${NETWORK_NAME}_GRE up
+            echo "GRE tunnel setup completed for $NETWORK_NAME."
+        fi
+    done
+
+    echo "All specified tunnels have been updated successfully."
 }
 
-update_tunnel
+# اجرای به‌روزرسانی تمامی تونل‌های مشخص شده
+delete_specific_tunnels
+update_all_tunnels
