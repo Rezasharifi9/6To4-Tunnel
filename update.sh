@@ -1,21 +1,27 @@
 #!/bin/bash
 
-# فایل ذخیره اطلاعات شبکه
-TUNNEL_FILE="/etc/tunnel_env"
+# مسیر پوشه‌ای که اطلاعات تونل‌ها را ذخیره می‌کند
+TUNNEL_DIR="/etc/tunnel_configs"
 
 # تابع برای اعتبارسنجی وجود فایل ذخیره اطلاعات
 validate_tunnel_file() {
-    if [[ ! -f "$TUNNEL_FILE" ]]; then
-        echo "Tunnel information not found. Please configure the tunnel first."
+    local tunnel_file=$1
+    if [[ ! -f "$tunnel_file" ]]; then
+        echo "Tunnel information not found for this network. Please configure the tunnel first."
         exit 1
     fi
 }
 
 # تابع برای آپدیت تونل
 update_tunnel() {
-    validate_tunnel_file
+    # دریافت نام شبکه از کاربر
+    read -p "Enter the network name to update: " network_name
+    TUNNEL_FILE="$TUNNEL_DIR/${network_name}_env"
 
-    # دریافت اطلاعات قبلی از فایل
+    # بررسی اینکه فایل تونل وجود دارد یا نه
+    validate_tunnel_file "$TUNNEL_FILE"
+
+    # بارگذاری اطلاعات تونل از فایل
     source "$TUNNEL_FILE"
 
     # استفاده از اطلاعات ذخیره شده برای تصمیم‌گیری
