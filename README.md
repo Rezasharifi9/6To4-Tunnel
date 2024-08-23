@@ -36,7 +36,7 @@ sudo ./6to4.sh
    crontab -e
    ```
 
-   Add the following line to run the update script every hour:
+   Add the following line to run the update script reboot server:
 
    ```bash
    @reboot /root/update.sh
