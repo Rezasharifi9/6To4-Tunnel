@@ -99,6 +99,14 @@ add_tunnel() {
     fi
 }
 
+validate_ipv6() {
+    if [[ $1 =~ ^([0-9a-fA-F]{1,4}:){1,7}[0-9a-fA-F]{1,4}$ || $1 =~ ^([0-9a-fA-F]{1,4}::[0-9a-fA-F]{1,4})$ ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
 # تابع برای ویرایش تونل موجود
 edit_tunnel() {
     echo "Editing an existing tunnel..."
@@ -148,7 +156,7 @@ install_iptables_and_forward_port() {
 
     while true; do
         read -p "Enter the IPv6 address of the tunnel: " ipv6_address
-        if [[ "$ipv6_address" =~ ^([0-9a-fA-F]{1,4}:){1,7}[0-9a-fA-F]{1,4}$ ]]; then
+        if validate_ipv6 "$ipv6_address"; then
             break
         else
             echo "Invalid IPv6 address. Please enter a valid IPv6 address."
