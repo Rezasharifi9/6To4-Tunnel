@@ -31,7 +31,7 @@ update_tunnel() {
         remote_domain="$LOCAL_DOMAIN"
     else
         echo "Invalid server location information."
-        exit 1```bash
+        exit 1
     fi
 
     # به‌روزرسانی تونل با اطلاعات جدید
