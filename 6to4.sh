@@ -6,6 +6,18 @@ TUNNEL_DIR="/etc/tunnel_configs"
 # اطمینان از اینکه پوشه وجود دارد
 mkdir -p "$TUNNEL_DIR"
 
+# تابع برای نمایش منوی اصلی
+show_menu() {
+    echo "============================================"
+    echo " Welcome to the Tunnel Configuration Script "
+    echo "============================================"
+    echo "Please select an option:"
+    echo "1. Add a new tunnel"
+    echo "2. Edit an existing tunnel"
+    echo "3. Install 3x-ui"
+    echo "4. Exit"
+}
+
 # تابع برای افزودن یا به‌روزرسانی یک مقدار در فایل
 update_env_file() {
     local tunnel_file=$1
