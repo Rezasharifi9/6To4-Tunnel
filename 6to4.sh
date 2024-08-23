@@ -26,7 +26,7 @@ add_tunnel() {
     # پرسش از کاربر برای تعیین نوع سرور محلی (ایران یا خارج)
     read -p "Is this server based in Iran or Abroad? (1 for Iran, 2 for Abroad): " server_location
     if [[ "$server_location" == "1" ]]; then
-        # تنظیم سرور محلی به عنوان ایران
+        server_location="Iran"
         local_ipv6="ad11::1"
         remote_ipv6="ad11::2"
         local_domain="$iran_domain"
@@ -34,7 +34,7 @@ add_tunnel() {
         echo "Configuring Local IPv6 as: $local_ipv6 (Iran)"
         echo "Configuring Remote IPv6 as: $remote_ipv6 (Abroad)"
     elif [[ "$server_location" == "2" ]]; then
-        # تنظیم سرور محلی به عنوان خارج
+        server_location="Abroad"
         local_ipv6="ad11::2"
         remote_ipv6="ad11::1"
         local_domain="$abroad_domain"
@@ -60,6 +60,7 @@ add_tunnel() {
     echo "REMOTE_IPV6=$remote_ipv6" >> /etc/tunnel_env
     echo "LOCAL_IPV4=$local_ipv4" >> /etc/tunnel_env
     echo "REMOTE_IPV4=$remote_ipv4" >> /etc/tunnel_env
+    echo "SERVER_LOCATION=$server_location" >> /etc/tunnel_env
 
     # دریافت IPها از دامنه‌ها
     remote_ip=$(dig +short "$remote_domain")
