@@ -14,12 +14,6 @@ if [[ -z "$remote_ip" || -z "$local_ip" ]]; then
     exit 1
 fi
 
-# بررسی تغییرات IP
-if [[ "$remote_ip" == "$REMOTE_IP" && "$local_ip" == "$LOCAL_IP" ]]; then
-    echo "No changes in IP addresses detected. No need to update tunnels."
-    exit 0
-fi
-
 # به‌روزرسانی فایل محیطی با IPهای جدید
 echo "REMOTE_IP=$remote_ip" > /etc/tunnel_env
 echo "LOCAL_IP=$local_ip" >> /etc/tunnel_env
