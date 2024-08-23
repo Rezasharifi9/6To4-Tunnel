@@ -51,30 +51,63 @@ add_tunnel() {
     read -p "Is this server based in Iran or Abroad? (1 for Iran, 2 for Abroad): " server_location
     if [[ "$server_location" == "1" ]]; then
         server_location="Iran"
-        local_ipv6="ad11::1"
-        remote_ipv6="ad11::2"
+        local_label="Iran"
+        remote_label="Abroad"
         local_domain="$iran_domain"
         remote_domain="$abroad_domain"
-        echo "Configuring Local IPv6 as: $local_ipv6 (Iran)"
-        echo "Configuring Remote IPv6 as: $remote_ipv6 (Abroad)"
     elif [[ "$server_location" == "2" ]]; then
         server_location="Abroad"
-        local_ipv6="ad11::2"
-        remote_ipv6="ad11::1"
+        local_label="Abroad"
+        remote_label="Iran"
         local_domain="$abroad_domain"
         remote_domain="$iran_domain"
-        echo "Configuring Local IPv6 as: $local_ipv6 (Abroad)"
-        echo "Configuring Remote IPv6 as: $remote_ipv6 (Iran)"
     else
         echo "Invalid selection. Please enter 1 for Iran or 2 for Abroad."
         exit 1
     fi
 
+    # پرسش از کاربر برای وارد کردن دستی IPv6 یا انتخاب از لیست پیشنهاد شده
+    read -p "Do you want to manually enter IPv6 addresses? (y/n): " ipv6_choice
+    if [[ "$ipv6_choice" == "y" ]]; then
+        # پیشنهاد 10 آدرس IPv6 به کاربر از ad10 تا ad20
+        echo "Select an IPv6 range from the following options:"
+        for i in {10..20}; do
+            echo "$i) ad$i"
+        done
+
+        read -p "Enter the number of the IPv6 range you want to use (10-20): " ipv6_range_choice
+
+        if [[ "$ipv6_range_choice" -ge 10 && "$ipv6_range_choice" -le 20 ]]; then
+            selected_range="ad$ipv6_range_choice"
+            if [[ "$server_location" == "Iran" ]]; then
+                local_ipv6="${selected_range}::1"
+                remote_ipv6="${selected_range}::2"
+            else
+                local_ipv6="${selected_range}::2"
+                remote_ipv6="${selected_range}::1"
+            fi
+        else
+            echo "Invalid selection. Please enter a number between 10 and 20."
+            exit 1
+        fi
+    else
+        if [[ "$server_location" == "Iran" ]]; then
+            local_ipv6="ad11::1"
+            remote_ipv6="ad11::2"
+        else
+            local_ipv6="ad11::2"
+            remote_ipv6="ad11::1"
+        fi
+    fi
+
+    echo "Configuring ${local_label} IPv6 as: $local_ipv6"
+    echo "Configuring ${remote_label} IPv6 as: $remote_ipv6"
+
     # تولید آدرس‌های IPv4 به صورت رندوم
     local_ipv4="172.18.20.1"
     remote_ipv4="172.18.20.2"
-    echo "Generated Local IPv4: $local_ipv4"
-    echo "Generated Remote IPv4: $remote_ipv4"
+    echo "Generated ${local_label} IPv4: $local_ipv4"
+    echo "Generated ${remote_label} IPv4: $remote_ipv4"
 
     # به‌روزرسانی یا اضافه کردن اطلاعات جدید به فایل تونل
     update_env_file "$TUNNEL_FILE" "NETWORK_NAME" "$network_name"
@@ -163,7 +196,8 @@ remove_tunnel() {
 # تابع برای نصب 3x-ui
 install_3xui() {
     echo "Downloading and installing 3x-ui..."
-    bash <(curl -Ls https://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
+    bash <(curl -Ls https```bash
+://raw.githubusercontent.com/mhsanaei/3x-ui/master/install.sh)
 }
 
 # تابع برای ویرایش تونل موجود
@@ -216,7 +250,7 @@ while true; do
             ;;
         5)
             echo "Exiting the script. Goodbye!"
-            exit
+            exit 0
             ;;
         *)
             echo "Invalid choice. Please enter a number between 1 and 5."
