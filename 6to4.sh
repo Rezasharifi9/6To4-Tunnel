@@ -146,7 +146,7 @@ add_tunnel() {
     # ایجاد تونل GRE
     ip -6 tunnel add ${network_name}_GRE mode ip6gre remote $remote_ipv6 local $local_ipv6
     ip addr add $local_ipv4/30 dev ${network_name}_GRE
-    ip link set ${network_name}_6To4 mtu 1350
+    ip link set ${network_name}_GRE mtu 1350
     ip link set ${network_name}_GRE up
     echo "GRE tunnel setup completed for $network_name."
 
