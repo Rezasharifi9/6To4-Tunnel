@@ -55,12 +55,14 @@ update_all_tunnels() {
             # ایجاد تونل 6to4
             ip tunnel add ${NETWORK_NAME}_6To4 mode sit remote $remote_ip local $local_ip
             ip -6 addr add $LOCAL_IPV6/64 dev ${NETWORK_NAME}_6To4
+            ip link set ${NETWORK_NAME}_6To4 mtu 1350
             ip link set ${NETWORK_NAME}_6To4 up
             echo "6to4 tunnel setup completed for $NETWORK_NAME."
 
             # ایجاد تونل GRE
             ip -6 tunnel add ${NETWORK_NAME}_GRE mode ip6gre remote $REMOTE_IPV6 local $LOCAL_IPV6
             ip addr add $LOCAL_IPV4/30 dev ${NETWORK_NAME}_GRE
+            ip link set ${NETWORK_NAME}_GRE mtu 1350
             ip link set ${NETWORK_NAME}_GRE up
             echo "GRE tunnel setup completed for $NETWORK_NAME."
         fi
