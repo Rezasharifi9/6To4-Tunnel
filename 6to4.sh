@@ -100,15 +100,6 @@ add_tunnel() {
         fi
     fi
 
-ip -6 addr flush dev ${network_name}_6To4 2>/dev/null
-ip link set ${network_name}_6To4 down 2>/dev/null
-ip link delete ${network_name}_6To4 2>/dev/null
-
-ip addr flush dev ${network_name}_GRE 2>/dev/null
-ip link set ${network_name}_GRE down 2>/dev/null
-ip link delete ${network_name}_GRE 2>/dev/null
-
-
     echo "Configuring ${local_label} IPv6 as: $local_ipv6"
     echo "Configuring ${remote_label} IPv6 as: $remote_ipv6"
 
@@ -191,21 +182,9 @@ remove_tunnel() {
     if [[ "$choice" -gt 0 && "$choice" -le ${#tunnels[@]} ]]; then
         selected_tunnel=${tunnels[$((choice-1))]}
 
-ip addr flush dev ${network_name}_GRE 2>/dev/null
-ip link set ${network_name}_GRE down 2>/dev/null
-ip link delete ${network_name}_GRE 2>/dev/null
-
-ip addr flush dev ${network_name}_GRE 2>/dev/null
-ip link set ${network_name}_GRE down 2>/dev/null
-ip link delete ${network_name}_GRE 2>/dev/null
-
-
-        
-if ! ip tunnel add ${network_name}_6To4 mode sit remote $remote_ip local $local_ip 2>/tmp/${network_name}_6to4_error.log; then
-    echo "❌ Failed to create 6to4 tunnel. Log:"
-    cat /tmp/${network_name}_6to4_error.log
-    exit 1
-fi
+        # حذف تونل‌های مرتبط با نام انتخاب شده
+        ip link delete ${selected_tunnel}_6To4 2>/dev/null
+        ip link delete ${selected_tunnel}_GRE 2>/dev/null
 
         # حذف فایل پیکربندی
         rm -f "$TUNNEL_DIR/${selected_tunnel}_env"
